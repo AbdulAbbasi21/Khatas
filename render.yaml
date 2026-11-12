@@ -36,9 +36,9 @@ services:
         sync: false
       - key: PAYPAL_CLIENT_SECRET
         sync: false
-      # e.g. https://khataz-web.onrender.com/paypal/callback (must match your PayPal app's Return URL)
+      # must match the Return URL in your PayPal app's "Log in with PayPal" settings
       - key: PAYPAL_REDIRECT_URI
-        sync: false
+        value: https://khataz-web.onrender.com/paypal/callback
       - key: PAYPAL_RECEIVER_EMAILS
         sync: false
       - key: GROQ_API_KEY

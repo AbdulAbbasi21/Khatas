@@ -74,8 +74,9 @@ class Settings:
     paypal_env: str = os.getenv("PAYPAL_ENV", "sandbox").lower()  # sandbox | live
     paypal_client_id: str = os.getenv("PAYPAL_CLIENT_ID", "")
     paypal_client_secret: str = os.getenv("PAYPAL_CLIENT_SECRET", "")
-    paypal_redirect_uri: str = os.getenv(
-        "PAYPAL_REDIRECT_URI", site_url(os.getenv("APP_URL", "http://localhost:5173")) + "/paypal/callback")
+    # blank = <APP_URL>/paypal/callback
+    paypal_redirect_uri: str = (os.getenv("PAYPAL_REDIRECT_URI", "").strip()
+                                or site_url(os.getenv("APP_URL", "http://localhost:5173")) + "/paypal/callback")
     paypal_timeout_seconds: float = float(os.getenv("PAYPAL_TIMEOUT_SECONDS", "15"))
     # how often pending payments are checked against receivers' PayPal (0 = never in the background)
     paypal_sync_seconds: int = int(os.getenv("PAYPAL_SYNC_SECONDS", "120"))
