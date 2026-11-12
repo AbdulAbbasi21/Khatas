@@ -1,5 +1,7 @@
 // Tiny API client. The token lives in localStorage; every call sends it.
-const BASE = import.meta.env.VITE_API_URL || "";
+// Render passes the API's host without https://, so add it when missing.
+const RAW_BASE = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
+const BASE = RAW_BASE && !RAW_BASE.includes("://") ? `https://${RAW_BASE}` : RAW_BASE;
 const TOKEN_KEY = "khataz_token";
 
 export const token = {

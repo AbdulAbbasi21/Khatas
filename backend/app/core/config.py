@@ -16,19 +16,35 @@ def _list(name: str, default: str) -> list[str]:
     return [x.strip() for x in os.getenv(name, default).split(",") if x.strip()]
 
 
+def db_url(url: str) -> str:
+    """Hosts like Render give postgres:// or postgresql://; we use the psycopg 3 driver."""
+    for prefix in ("postgres://", "postgresql://"):
+        if url.startswith(prefix):
+            return "postgresql+psycopg://" + url[len(prefix):]
+    return url
+
+
+def site_url(url: str) -> str:
+    """Add https:// to a bare host name (Render passes service hosts without it)."""
+    url = url.strip().rstrip("/")
+    if url and "://" not in url:
+        url = "https://" + url
+    return url
+
+
 def _bool(name: str, default: bool) -> bool:
     return os.getenv(name, str(default)).strip().lower() in {"1", "true", "yes", "on"}
 
 
 @dataclass(frozen=True)
 class Settings:
-    database_url: str = os.getenv(
+    database_url: str = db_url(os.getenv(
         "DATABASE_URL", "postgresql+psycopg://khataz:khataz_dev@localhost:5432/khataz"
-    )
+    ))
     jwt_secret: str = os.getenv("JWT_SECRET", "dev-only-secret-change-me-in-production-0123456789")
     jwt_expire_minutes: int = int(os.getenv("JWT_EXPIRE_MINUTES", "1440"))
     cors_origins: list[str] = field(
-        default_factory=lambda: _list("CORS_ORIGINS", "http://localhost:5173")
+        default_factory=lambda: [site_url(o) for o in _list("CORS_ORIGINS", "http://localhost:5173")]
     )
     storage_dir: str = os.getenv("STORAGE_DIR", "storage")
     max_upload_mb: float = float(os.getenv("MAX_UPLOAD_MB", "10"))
@@ -45,7 +61,7 @@ class Settings:
     payment_tolerance: Decimal = Decimal(os.getenv("PAYMENT_TOLERANCE", "0.95"))
     fx_timeout_seconds: float = float(os.getenv("FX_TIMEOUT_SECONDS", "6"))
     # where the web app runs (used for links in emails)
-    app_url: str = os.getenv("APP_URL", "http://localhost:5173").rstrip("/")
+    app_url: str = site_url(os.getenv("APP_URL", "http://localhost:5173"))
     # email: leave SMTP_HOST empty to print emails in the terminal instead of sending
     smtp_host: str = os.getenv("SMTP_HOST", "")
     smtp_port: int = int(os.getenv("SMTP_PORT", "587"))
@@ -59,7 +75,7 @@ class Settings:
     paypal_client_id: str = os.getenv("PAYPAL_CLIENT_ID", "")
     paypal_client_secret: str = os.getenv("PAYPAL_CLIENT_SECRET", "")
     paypal_redirect_uri: str = os.getenv(
-        "PAYPAL_REDIRECT_URI", os.getenv("APP_URL", "http://localhost:5173").rstrip("/") + "/paypal/callback")
+        "PAYPAL_REDIRECT_URI", site_url(os.getenv("APP_URL", "http://localhost:5173")) + "/paypal/callback")
     paypal_timeout_seconds: float = float(os.getenv("PAYPAL_TIMEOUT_SECONDS", "15"))
     # how often pending payments are checked against receivers' PayPal (0 = never in the background)
     paypal_sync_seconds: int = int(os.getenv("PAYPAL_SYNC_SECONDS", "120"))

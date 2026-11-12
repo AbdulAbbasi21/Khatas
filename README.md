@@ -258,9 +258,28 @@ Full, interactive list at http://localhost:8000/docs.
 
 ## Deploying
 
+### Render (one click)
+
+`render.yaml` sets up everything on Render's free plan: a PostgreSQL database, the API
+(`backend/Dockerfile`, runs migrations on start) and the web app (static site).
+
+1. Push this repo to GitHub.
+2. Render dashboard -> **New** -> **Blueprint** -> pick the repo -> **Apply**.
+3. Fill in the keys it asks for (PayPal, Groq, SMTP). Leave any blank to turn that feature off.
+   `JWT_SECRET` is generated, and the API and web app find each other's addresses automatically.
+4. For "Log in with PayPal", set `PAYPAL_REDIRECT_URI` to
+   `https://<your web app>.onrender.com/paypal/callback` and use the same Return URL in your PayPal app.
+
+Free plan notes: the API sleeps after 15 minutes without visits (the first request then takes about
+a minute), the free database expires after 30 days, and uploaded screenshots are lost when the API
+restarts (add a Render disk and set `STORAGE_DIR` to keep them). The screenshot scanner is off;
+people type the payment details.
+
+### Other hosts
+
 - **Backend:** `backend/Dockerfile` (runs migrations on start). Set `DATABASE_URL`, a long random
   `JWT_SECRET` and `CORS_ORIGINS` to your frontend's address. Use a managed PostgreSQL
-  (Render, Railway, Neon, Supabase).
+  (Railway, Neon, Supabase).
 - **Frontend:** `npm run build`, host `frontend/dist` (Vercel, Netlify). Set `VITE_API_URL` to the
   backend's URL before building.
 

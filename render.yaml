@@ -1,0 +1,81 @@
+# Render Blueprint: Dashboard -> New -> Blueprint -> pick this repo.
+# Creates the PostgreSQL database, the API (Docker) and the web app (static site).
+# Values marked "sync: false" are asked for when you create the Blueprint; leave any blank to turn that feature off.
+
+databases:
+  - name: khataz-db
+    plan: free
+    databaseName: khataz
+    user: khataz
+
+services:
+  - type: web
+    name: khataz-api
+    runtime: docker
+    plan: free
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: khataz-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      # the web app's address (Render gives the host; the API adds https://)
+      - key: CORS_ORIGINS
+        fromService:
+          type: web
+          name: khataz-web
+          property: host
+      - key: APP_URL
+        fromService:
+          type: web
+          name: khataz-web
+          property: host
+      - key: SCANNER_ENABLED
+        value: "false"
+      - key: PAYPAL_ENV
+        value: sandbox
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      # e.g. https://khataz-web.onrender.com/paypal/callback (must match your PayPal app's Return URL)
+      - key: PAYPAL_REDIRECT_URI
+        sync: false
+      - key: PAYPAL_RECEIVER_EMAILS
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: ELASTIC_URL
+        sync: false
+
+  - type: web
+    name: khataz-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    # React Router: every page loads index.html
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: khataz-api
+          property: host
