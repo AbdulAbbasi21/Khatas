@@ -10,5 +10,18 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data   # keeps data after restarts
 
+  # optional smart search (ELASTIC_URL=http://localhost:9200 in backend/.env)
+  search:
+    image: elasticsearch:8.15.3
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+
 volumes:
   pgdata:
+  esdata:

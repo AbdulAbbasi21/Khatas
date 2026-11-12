@@ -590,3 +590,5 @@ textarea { resize: vertical; min-height: 70px; }
   .pp-table td { border: 0; padding: 3px 8px; }
 }
 
+
+.search-match { margin-top: 3px; color: #2a4466; background: #eef4fc; border-radius: 6px; padding: 2px 7px; display: inline-block; }

@@ -23,7 +23,8 @@ export default function Search() {
   return (
     <>
       <div className="page-head">
-        <div><h1>Search</h1></div>
+        <div><h1>Search</h1>
+          {r.engine === "elastic" && <p className="small muted">Smart search by Elastic: finds names with typos and words inside entries.</p>}</div>
       </div>
 
       <div className="grid-2" style={{ alignItems: "start" }}>
@@ -40,6 +41,7 @@ export default function Search() {
                     <div>
                       <div className="name">{s.other_party} <LocalId id={s.local_id} /> <KhatazId id={s.other_khataz_id} /></div>
                       <div className="small muted">{s.business_name} · {s.perspective === "owed_to_me" ? "owes you" : "you owe"}</div>
+                      {s.match && <div className="small search-match">“{s.match}”</div>}
                     </div>
                   </div>
                   <Balance amount={s.balance} currency={s.currency} perspective={s.perspective} />

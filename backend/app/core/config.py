@@ -39,6 +39,8 @@ class Settings:
     # above (PAYPAL_CLIENT_ID / SECRET), so their automatic payment check is always on
     paypal_receiver_emails: tuple[str, ...] = tuple(e.strip().lower() for e in
                                                     os.getenv("PAYPAL_RECEIVER_EMAILS", "").split(",") if e.strip())
+    # optional smarter search; empty = the basic database search
+    elastic_url: str = os.getenv("ELASTIC_URL", "")
     entry_cancel_hours: int = int(os.getenv("ENTRY_CANCEL_HOURS", "24"))
     payment_tolerance: Decimal = Decimal(os.getenv("PAYMENT_TOLERANCE", "0.95"))
     fx_timeout_seconds: float = float(os.getenv("FX_TIMEOUT_SECONDS", "6"))

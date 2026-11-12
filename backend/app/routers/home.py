@@ -17,6 +17,7 @@ from app.routers.auth import current_user
 from app.schemas import InviteOut, NotificationOut
 from app.core import khataz_id as kid
 from app.schemas import PublicUserOut
+from app.services import elastic
 from app.services import ledger, links
 from app.services.common import audit, notify
 from app.services.views import claim_out, summary
@@ -232,22 +233,31 @@ def search(q: str, user: User = Depends(current_user), db: Session = Depends(get
     (Searching everyone by name would let anyone list who uses Khataz.)"""
     text = q.strip()
     if len(text) < 2:
-        return {"query": text, "records": [], "people": []}
+        return {"query": text, "engine": "basic", "records": [], "people": []}
     needle = text.lstrip("@#").lower()
 
-    records = []
-    for rel in _my_relationships(db, user):
-        s = summary(db, rel, user)
-        hay = [rel.contact.name, rel.contact.company, rel.business.name, s.other_khataz_id, s.local_id]
-        if any(h and needle in h.lower() for h in hay):
-            records.append(s)
-    records.sort(key=lambda r: (not r.other_party.lower().startswith(needle), r.other_party.lower()))
+    rels = _my_relationships(db, user)
+    sums = {rel.id: summary(db, rel, user) for rel in rels}
+    ranked = elastic.search(db, user, text, rels, sums)  # None = Elasticsearch off or down
+    if ranked is not None:
+        engine = "elastic"
+        records = [sums[rid].model_dump() | {"match": snippet} for rid, snippet in ranked if rid in sums]
+    else:
+        engine = "basic"
+        records = []
+        for rel in rels:
+            s = sums[rel.id]
+            hay = [rel.contact.name, rel.contact.company, rel.business.name, s.other_khataz_id, s.local_id]
+            if any(h and needle in h.lower() for h in hay):
+                records.append(s)
+        records.sort(key=lambda r: (not r.other_party.lower().startswith(needle), r.other_party.lower()))
+        records = [r.model_dump() | {"match": None} for r in records]
 
     people = []
     if len(needle) >= 3:
         found = db.scalars(select(User).where(User.khataz_id.startswith(needle), User.id != user.id)
                            .order_by(func.length(User.khataz_id), User.khataz_id).limit(8)).all()
         for u in found:
-            in_records = [r.id for r in records if r.other_khataz_id == u.khataz_id]
+            in_records = [r["id"] for r in records if r["other_khataz_id"] == u.khataz_id]
             people.append({**PublicUserOut.model_validate(u).model_dump(), "record_ids": in_records})
-    return {"query": text, "records": records[:30], "people": people}
+    return {"query": text, "engine": engine, "records": records[:30], "people": people}
