@@ -1,0 +1,6 @@
+# Optional: the PayPal screenshot scanner (~2 GB with models). Without it, people type the details.
+-r requirements.txt
+pillow-heif>=0.16
+easyocr>=1.7
+transformers>=4.40
+torch>=2.2

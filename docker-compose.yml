@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: khataz
+      POSTGRES_PASSWORD: khataz_dev
+      POSTGRES_DB: khataz
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data   # keeps data after restarts
+
+volumes:
+  pgdata:
