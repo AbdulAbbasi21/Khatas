@@ -266,7 +266,8 @@ Full, interactive list at http://localhost:8000/docs.
 1. Push this repo to GitHub.
 2. Render dashboard -> **New** -> **Blueprint** -> pick the repo -> **Apply**.
 3. Fill in the keys it asks for (PayPal, Groq, SMTP). Leave any blank to turn that feature off.
-   `JWT_SECRET` is generated, and the API and web app find each other's addresses automatically.
+   `JWT_SECRET` is generated. The API and web app addresses (`khataz-api.onrender.com`,
+   `khataz-web.onrender.com`) are written in `render.yaml`; change them there if yours differ.
 4. For "Log in with PayPal", set `PAYPAL_REDIRECT_URI` to
    `https://<your web app>.onrender.com/paypal/callback` and use the same Return URL in your PayPal app.
 
