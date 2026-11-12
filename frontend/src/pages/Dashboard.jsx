@@ -172,13 +172,15 @@ export default function Dashboard() {
     const next = new URLSearchParams(params); next.delete("biz"); next.delete("tab"); setParams(next, { replace: true });
   }, [params, setParams]);
 
+  // hooks must run before the early returns below, or React crashes when loading finishes
+  const businesses = data ? mergeBusinesses(data) : [];
+  const openBiz = businesses.find((b) => b.id === openId);
+  useEffect(() => { setOpenBusiness(openBiz?.business_id); return () => setOpenBusiness(null); }, [openBiz?.business_id]);
+
   if (loading && !both) return <Loading />;
   if (error) return <ErrorBox error={error} />;
   const c = data.counts;
   const waiting = c.to_confirm + c.to_review + c.open_disputes + c.entries_to_accept + (c.entries_to_confirm || 0) + c.invites;
-  const businesses = mergeBusinesses(data);
-  const openBiz = businesses.find((b) => b.id === openId);
-  useEffect(() => { setOpenBusiness(openBiz?.business_id); return () => setOpenBusiness(null); }, [openBiz?.business_id]);
 
   // default tab: whichever side has people, "Money Owed to Me" first
   const defaultTab = (b) => (b.owed.length || !b.owe.length ? "owed" : "owe");
